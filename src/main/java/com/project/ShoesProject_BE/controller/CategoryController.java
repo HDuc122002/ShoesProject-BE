@@ -14,13 +14,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/categories")
-//@Validated
-//Dependency Injection
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
     @PostMapping("/create")
-    //Nếu tham số truyền vào là 1 object thì sao ? => Data Transfer Object = Request Object
     public ResponseEntity<?> createCategory(
             @Valid @RequestBody CategoryDTO categoryDTO,
             BindingResult result) {
@@ -38,8 +35,6 @@ public class CategoryController {
     //Hiện tất cả các categories
     @GetMapping("")
     public ResponseEntity<List<Category>> getAllCategories(
-//            @RequestParam("page")     int page,
-//            @RequestParam("limit")    int limit
     ) {
         List<Category> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);

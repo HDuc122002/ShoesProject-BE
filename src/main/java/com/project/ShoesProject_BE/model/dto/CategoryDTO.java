@@ -3,7 +3,7 @@ package com.project.ShoesProject_BE.model.dto;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
-@Data//toString
+@Data
 @Getter
 @Setter
 @AllArgsConstructor

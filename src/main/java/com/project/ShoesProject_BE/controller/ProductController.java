@@ -36,7 +36,6 @@ import java.util.UUID;
 public class ProductController {
     private final ProductService productService;
     @PostMapping("/create")
-    //POST http://localhost:8080/v1/api/products
     public ResponseEntity<?> createProduct(
             @Valid @RequestBody ProductDTO productDTO,
             BindingResult result
@@ -57,7 +56,6 @@ public class ProductController {
     }
     @PostMapping(value = "upload/{id}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //POST http://localhost:8080/v1/api/products
     public ResponseEntity<?> uploadImages(
             @PathVariable("id") Long productId,
             @ModelAttribute("files") List<MultipartFile> files
@@ -73,8 +71,7 @@ public class ProductController {
                 if(file.getSize() == 0) {
                     continue;
                 }
-                // Kiểm tra kích thước file và định dạng
-                if(file.getSize() > 10 * 1024 * 1024) { // Kích thước > 10MB
+                if(file.getSize() > 10 * 1024 * 1024) {
                     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                             .body("File is too large! Maximum size is 10MB");
                 }
@@ -83,9 +80,7 @@ public class ProductController {
                     return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                             .body("File must be an image");
                 }
-                // Lưu file và cập nhật thumbnail trong DTO
-                String filename = storeFile(file); // Thay thế hàm này với code của bạn để lưu file
-                //lưu vào đối tượng product trong DB
+                String filename = storeFile(file);
                 ProductImage productImage = productService.createProductImage(
                         existingProduct.getId(),
                         ProductImageDTO.builder()
@@ -104,17 +99,12 @@ public class ProductController {
             throw new IOException("Invalid image format");
         }
         String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-        // Thêm UUID vào trước tên file để đảm bảo tên file là duy nhất
         String uniqueFilename = UUID.randomUUID().toString() + "_" + filename;
-        // Đường dẫn đến thư mục mà bạn muốn lưu file
         java.nio.file.Path uploadDir = Paths.get("uploads");
-        // Kiểm tra và tạo thư mục nếu nó không tồn tại
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
-        // Đường dẫn đầy đủ đến file
         java.nio.file.Path destination = Paths.get(uploadDir.toString(), uniqueFilename);
-        // Sao chép file vào thư mục đích
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         return uniqueFilename;
     }
@@ -127,12 +117,10 @@ public class ProductController {
             @RequestParam("page")     int page,
             @RequestParam("limit")    int limit
     ) {
-        // Tạo Pageable từ thông tin trang và giới hạn
         PageRequest pageRequest = PageRequest.of(
                 page, limit,
                 Sort.by("createdAt").descending());
         Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
-        // Lấy tổng số trang
         int totalPages = productPage.getTotalPages();
         List<ProductResponse> products = productPage.getContent();
         return ResponseEntity.ok(ProductListResponse
@@ -154,7 +142,7 @@ public class ProductController {
         }
 
     }
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable long id) {
         try {
             productService.deleteProduct(id);
@@ -186,7 +174,6 @@ public class ProductController {
 //        }
 //        return ResponseEntity.ok("Fake Products created successfully");
 //    }
-    //update a product
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateProduct(
             @PathVariable long id,
@@ -198,5 +185,4 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 }

@@ -24,22 +24,16 @@ public class OrderService implements IOrderService {
     private final ModelMapper modelMapper;
     @Override
     public Order createOrder(OrderDTO orderDTO) throws Exception {
-        //tìm xem user'id có tồn tại ko
         User user = userRepository
                 .findById(orderDTO.getUserId())
                 .orElseThrow(() -> new DataNotFoundException("Cannot find user with id: "+orderDTO.getUserId()));
-        //convert orderDTO => Order
-        //dùng thư viện Model Mapper
-        // Tạo một luồng bảng ánh xạ riêng để kiểm soát việc ánh xạ
         modelMapper.typeMap(OrderDTO.class, Order.class)
                 .addMappings(mapper -> mapper.skip(Order::setId));
-        // Cập nhật các trường của đơn hàng từ orderDTO
         Order order = new Order();
         modelMapper.map(orderDTO, order);
         order.setUser(user);
-        order.setOrderDate(new Date());//lấy thời điểm hiện tại
+        order.setOrderDate(new Date());
         order.setStatus(OrderStatus.PENDING);
-        //Kiểm tra shipping date phải >= ngày hôm nay
         LocalDate shippingDate = orderDTO.getShippingDate() == null
                 ? LocalDate.now() : orderDTO.getShippingDate();
         if (shippingDate.isBefore(LocalDate.now())) {
@@ -64,10 +58,8 @@ public class OrderService implements IOrderService {
         User existingUser = userRepository.findById(
                 orderDTO.getUserId()).orElseThrow(() ->
                 new DataNotFoundException("Cannot find user with id: " + id));
-        // Tạo một luồng bảng ánh xạ riêng để kiểm soát việc ánh xạ
         modelMapper.typeMap(OrderDTO.class, Order.class)
                 .addMappings(mapper -> mapper.skip(Order::setId));
-        // Cập nhật các trường của đơn hàng từ orderDTO
         modelMapper.map(orderDTO, order);
         order.setUser(existingUser);
         return orderRepository.save(order);
@@ -76,7 +68,6 @@ public class OrderService implements IOrderService {
     @Override
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id).orElse(null);
-        //no hard-delete, => please soft-delete
         if(order != null) {
             order.setActive(false);
             orderRepository.save(order);

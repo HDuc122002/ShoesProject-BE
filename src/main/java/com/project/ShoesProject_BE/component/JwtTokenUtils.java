@@ -22,38 +22,33 @@ import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
-public class JwtTokenUtil {
+public class JwtTokenUtils {
     @Value("${jwt.expiration}")
-    private int expiration; //save to an environment variable
+    private int expiration;
     @Value("${jwt.secretKey}")
     private String secretKey;
     public String generateToken(User user) throws Exception{
-        //properties => claims
         Map<String, Object> claims = new HashMap<>();
-        //this.generateSecretKey();
         claims.put("phoneNumber", user.getPhoneNumber());
         try {
             String token = Jwts.builder()
-                    .setClaims(claims) //how to extract claims from this ?
+                    .setClaims(claims)
                     .setSubject(user.getPhoneNumber())
                     .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000L))
                     .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                     .compact();
             return token;
         }catch (Exception e) {
-            //you can "inject" Logger, instead System.out.println
             throw new InvalidParamException("Cannot create jwt token, error: "+e.getMessage());
-            //return null;
         }
     }
     private Key getSignInKey() {
         byte[] bytes = Decoders.BASE64.decode(secretKey);
-        //Keys.hmacShaKeyFor(Decoders.BASE64.decode("TaqlmGv1iEDMRiFp/pHuID1+T84IABfuA0xXh4GhiUI="));
         return Keys.hmacShaKeyFor(bytes);
     }
     private String generateSecretKey() {
         SecureRandom random = new SecureRandom();
-        byte[] keyBytes = new byte[32]; // 256-bit key
+        byte[] keyBytes = new byte[32];
         random.nextBytes(keyBytes);
         String secretKey = Encoders.BASE64.encode(keyBytes);
         return secretKey;
@@ -69,7 +64,6 @@ public class JwtTokenUtil {
         final Claims claims = this.extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-    //check expiration
     public boolean isTokenExpired(String token) {
         Date expirationDate = this.extractClaim(token, Claims::getExpiration);
         return expirationDate.before(new Date());
